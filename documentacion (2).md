@@ -255,7 +255,7 @@ Durante esta fase no se detectaron valores atípicos significativos; sin embargo
 # 🧭 MENÚ CONSOLA – PROYECTO AURELION (DEMO 1)
 
 Luego de implementar y validar los procesos de limpieza y análisis, se desarrolló una interfaz de menú en consola que permite ejecutar cada módulo del Proyecto Aurelion de forma sencilla y ordenada. Este módulo facilita la interacción del usuario con los procesos de limpieza, análisis y exportación de datos, ofreciendo una manera estructurada, intuitiva y eficiente de acceder a las principales funciones del sistema desde una única interfaz.
----
+
 
 ## ⚙️ FUNCIONALIDAD GENERAL
 
