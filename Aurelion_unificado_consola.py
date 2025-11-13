@@ -84,7 +84,7 @@ def limpiar_analizar_clientes(df_cliente, mostrar_graficos=True):
         plt.pie( conteo_ciudades['cantidad'], labels=conteo_ciudades['ciudad'], autopct='%1.0f%%', startangle=90, colors=colores[:len(conteo_ciudades)], wedgeprops={'width': 0.55, 'edgecolor': 'white'}, textprops={'fontsize': 8, 'color': 'black'} )
         plt.title('Distribución de Clientes por Ciudad', fontsize=10, pad=8)
         texto_resumen = ( f"Filas originales: {resumen['filas_originales']}\n" f"Filas finales: {resumen['filas_finales']}\n" f"Duplicados eliminados: {resumen['duplicados_eliminados']}\n" f"Nulos detectados: {resumen['nulos_detectados']}\n" f"Moda ciudad: {moda_ciudad}" )
-        plt.figtext( 0.2, 0.01, "Cada segmento indica el porcentaje\n" "de registros de clientes en cada ubicación.\n\n" + texto_resumen, ha="left", fontsize=8, color='black' )
+        plt.figtext( 0.1, 0.01, "Cada segmento indica el porcentaje\n" "de registros de clientes en cada ubicación.\n\n" + texto_resumen, ha="left", fontsize=8, color='black' )
         plt.axis('equal')
         plt.tight_layout()
         plt.show()
@@ -188,12 +188,12 @@ def limpiar_analizar_productos(df_producto, df_map, mostrar_graficos=True):
         )
 
         plt.figtext(
-            0.5, -0.02,
+            0.5, 0.1, 
             "El gráfico muestra la dispersión y mediana de los precios unitarios en cada categoría de producto.\n"
             "Facilita comparar rangos de precios y detectar posibles valores atípicos.\n\n" + texto_resumen,
             ha='center',
             fontsize=7,
-            color='gray'
+            color='black'
         )
 
         plt.tight_layout()
@@ -280,12 +280,12 @@ def limpiar_analizar_ventas(df_ventas, mostrar_graficos=True):
         )
 
         plt.figtext(
-            0.5, -0.03,
+            0.5, -0.01,
             "El gráfico combina barras y una línea de tendencia para mostrar la distribución del uso de los medios de pago.\n"
             "Permite observar las preferencias de los clientes y variaciones en la frecuencia de uso.\n\n" + texto_resumen,
             ha='center',
             fontsize=7,
-            color='gray'
+            color='black'
         )
 
         plt.tight_layout()
@@ -384,14 +384,14 @@ def limpiar_analizar_detalle(df_detalle, mostrar_graficos=True):
             f"Moda: {moda_detalle_ventas:.2f}"
         )
 
-        fig.suptitle("Análisis del Detalle de Ventas", fontsize=10, fontweight='bold', y=1.02)
+        fig.suptitle("Análisis del Detalle de Ventas", fontsize=10, fontweight='bold', y=-1.01)
         plt.figtext(
             0.5, -0.02,
             "Visualización conjunta: el histograma muestra la dispersión del importe y el mapa de calor refleja la correlación\n"
             "entre cantidad e importe para analizar patrones de comportamiento en las ventas.\n\n" + texto_resumen,
             ha='center',
             fontsize=7,
-            color='gray'
+            color='black'
         )
 
         plt.tight_layout()
@@ -438,9 +438,7 @@ def mostrar_menu():
 
 def abrir_documentacion():
     enlace_github = (
-        "https://github.com/luis0221/Proyecto-aurelion/"
-        "blob/387b5910d4853f7c744af856ef37570d9343e048/"
-        "documentacion_demo1_con_diagrama1.md"
+        "https://github.com/scovaleda/AURELION.Sprint2/blob/main/documentacion%20(2).md"
     )
     print(f"\nAbriendo archivo de documentación en GitHub:\n{enlace_github}")
     try:
