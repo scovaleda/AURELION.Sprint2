@@ -252,6 +252,9 @@ De esta forma, se conservaron las versiones limpias y analizadas de todas las ho
 Durante esta fase no se detectaron valores atípicos significativos; sin embargo, estos se evaluarán nuevamente durante el análisis estadístico avanzado del modelo.
 
 ---
+
+
+
 # 🧭 MENÚ CONSOLA – PROYECTO AURELION (DEMO 1)
 
 Luego de implementar y validar los procesos de limpieza y análisis, se desarrolló una interfaz de menú en consola que permite ejecutar cada módulo del Proyecto Aurelion de forma sencilla y ordenada. Este módulo facilita la interacción del usuario con los procesos de limpieza, análisis y exportación de datos, ofreciendo una manera estructurada, intuitiva y eficiente de acceder a las principales funciones del sistema desde una única interfaz.
@@ -328,90 +331,86 @@ El menú utiliza las siguientes funciones auxiliares, definidas en otros módulo
 ---
 
 
-## ANÁLISIS ESTADÍSTICO Y VISUALIZACIÓN DE RESULTADOS
----
 
-En esta parte del proyecto se realizó el **análisis estadístico y la visualización de resultados** utilizando los datos ya limpios de las hojas *Clientes*, *Detalle_Ventas*, *Productos* y *Ventas* del archivo **BD_AURELION.xlsx**.  
-El propósito fue describir las características principales de los datos mediante medidas de tendencia central y representaciones gráficas que facilitan su interpretación.
 
----
+# 📊 ANÁLISIS ESTADÍSTICO Y VISUALIZACIÓN DE RESULTADOS  
 
-## 1. Identificación del tipo de distribución de variables
-
-Para analizar la forma en que se distribuyen los valores, se generaron diferentes tipos de gráficos según el contenido de cada hoja:
-
-- **Clientes:** gráfico de torta para observar la distribución de clientes por ciudad.  
-- **Detalle_Ventas:** histograma con líneas de referencia para visualizar la distribución de los importes.  
-- **Productos:** boxplot que muestra la dispersión y rangos de precios por categoría.  
-- **Ventas:** gráfico de barras para visualizar la frecuencia de los medios de pago utilizados.
-
-### Ejemplo: Distribución del importe de ventas
-
-```python
-plt.figure(figsize=(8,5))
-plt.hist(df_detalle['importe'], bins=15, color='skyblue', edgecolor='black', alpha=0.7)
-plt.axvline(df_detalle['importe'].mean(), color='red', linestyle='--', linewidth=2, label='Media')
-plt.axvline(df_detalle['importe'].median(), color='green', linestyle='--', linewidth=2, label='Mediana')
-plt.axvline(df_detalle['importe'].mode()[0], color='orange', linestyle='--', linewidth=2, label='Moda')
-plt.title("Distribución del Importe con Media, Mediana y Moda")
-plt.xlabel("Importe")
-plt.ylabel("Frecuencia")
-plt.legend()
-plt.show()
-```
-
-**Interpretación:**  
-El histograma muestra que la variable *importe* está **concentrada en valores bajos y medios**, con una menor cantidad de ventas de alto valor.  
-La diferencia entre la media, mediana y moda refleja una **distribución asimétrica hacia la derecha**, típica en datos de ventas.
+En esta etapa del proyecto se realizó el análisis estadístico y la visualización de resultados utilizando los datos ya depurados de las hojas **Clientes**, **Detalle_Ventas**, **Productos** y **Ventas** del archivo **BD_AURELION.xlsx**.  
+El objetivo fue describir las características principales de los datos mediante medidas de tendencia central y representaciones gráficas que faciliten su interpretación y permitan obtener conclusiones orientadas a la toma de decisiones.
 
 ---
 
-## 2. Detección de outliers (valores extremos)
+## 1️⃣ Identificación del tipo de distribución de variables  
 
-Para identificar posibles valores atípicos se utilizó el **boxplot de precios unitarios** por categoría de producto:
+### 🧭 Gráfico de Clientes  
+El gráfico de torta muestra la proporción de clientes por ciudad, evidenciando que **Río Cuarto concentra la mayor cantidad**, seguida por **Alta Gracia**, lo que refleja una fuerte presencia comercial en el interior provincial. Esta información es clave para optimizar la planificación logística y orientar las estrategias comerciales hacia las zonas más representativas.  
 
-```python
-plt.figure(figsize=(10,6))
-sns.boxplot(x='categoria_general', y='precio_unitario', data=df_producto, hue='categoria_general', palette='Set3', legend=False)
-plt.title('Distribución del Precio Unitario por Categoría de Producto')
-plt.xlabel('Categoría General')
-plt.ylabel('Precio Unitario')
-plt.xticks(rotation=45)
-plt.show()
-```
-
-**Interpretación:**  
-Los valores atípicos se observan en forma de puntos fuera de los rangos principales del boxplot.  
-Estos representan productos con precios considerablemente más altos o bajos que el resto de su categoría.  
-Aunque no se eliminaron en esta etapa, sirven para detectar posibles errores de carga o productos especiales.
+Desde el punto de vista **logístico**, permite optimizar rutas de entrega, planificar inventarios y evaluar la conveniencia de nuevos centros de distribución. En **marketing y ventas**, facilita la segmentación de campañas, la detección de mercados potenciales (como Córdoba y Mendiolaza) y la adaptación de promociones según la ubicación.  
+A nivel **administrativo y financiero**, mejora la organización de recursos y el control presupuestario por región, mientras que en **atención al cliente** ayuda a distribuir mejor el personal y fortalecer los canales en zonas de mayor demanda.  
 
 ---
 
-## 3. Gráficos representativos del análisis
+### 💰 Gráfico de Productos (Boxplot)  
+El boxplot refleja la **distribución de precios** de las nueve categorías principales de productos. Las categorías **Snacks/Panadería** y **Alimento** presentan una mayor dispersión, lo que indica variedad de precios, mientras que **Bebidas** y **Legumbres** concentran los productos de mayor costo.  
 
-Los gráficos más relevantes obtenidos en el proceso fueron:
+El rango general de precios va de **menos de $1000 a casi $5000**, con diferencias notables entre categorías. En **Otros** y **Legumbres**, la mediana está centrada, mostrando una distribución simétrica. En **Limpieza**, la mediana se ubica en la parte inferior y aparece un punto aislado, indicativo de un valor atípico. La categoría **Higiene** también presenta un outlier.  
 
-1. **Gráfico de torta – Distribución de Clientes por Ciudad:** muestra la proporción de clientes según su ubicación.  
-2. **Histograma – Distribución de Importes:** permite observar la tendencia central y dispersión de los montos de venta.  
-3. **Boxplot – Precio Unitario por Categoría:** evidencia los rangos de precios y posibles valores atípicos.  
-4. **Gráfico de barras – Medios de Pago Más Utilizados:** presenta la frecuencia de los distintos métodos de pago.
-
-Estos gráficos permiten obtener una visión general clara de los datos antes de avanzar al modelado.
+Este análisis permite **entender la estructura de precios**, ajustar estrategias de stock y evaluar políticas de precios equilibradas entre categorías, además de detectar posibles errores de carga o productos fuera de rango.  
 
 ---
 
-## 4. Interpretación de resultados orientada al problema
+### 📈 Histograma de Ventas  
+El histograma de importes muestra que la mayoría de las observaciones se concentra entre **$2000 y $7000**, donde las barras alcanzan las frecuencias más altas (entre 50 y 60 registros).  
+A medida que el importe aumenta, la frecuencia disminuye, evidenciando una **distribución asimétrica positiva (sesgada a la derecha)**.  
 
-A partir del análisis realizado se pueden destacar las siguientes conclusiones:
+La **moda** (línea amarilla) se encuentra en los valores bajos, la **mediana** (verde) un poco más a la derecha y la **media** (roja) aún más desplazada, confirmando la presencia de valores altos que elevan el promedio general.  
+Esto sugiere que la mayoría de las ventas corresponden a montos bajos o medios, con pocas operaciones de alto importe que impactan en el promedio total.  
 
-- Los clientes se concentran mayormente en un grupo reducido de ciudades, lo que puede ayudar a definir estrategias comerciales focalizadas.  
-- La mayoría de las ventas presenta importes bajos o medios, con algunos valores más elevados que podrían representar compras grandes o mayoristas.  
-- El método de pago **efectivo** es el más frecuente, lo que abre la posibilidad de fomentar medios digitales.  
-- La recategorización de productos permitió observar diferencias claras entre los precios promedio por categoría.  
-- No se detectaron inconsistencias graves ni valores faltantes en las variables analizadas.
+---
 
-En resumen, el análisis confirma que la base de datos se encuentra **limpia, coherente y lista para su uso en etapas posteriores de análisis y modelado**.
+### 💳 Gráfico de Barras – Medios de Pago  
+El gráfico de barras muestra la **distribución del uso de los distintos medios de pago**, destacando que el **efectivo** es el más utilizado, seguido por **QR**, mientras que **transferencia** y **tarjeta** tienen una menor participación.  
 
-## 👨‍💻 Autor
+Este patrón refleja una **preferencia marcada por los medios tradicionales** y una **adopción más lenta de opciones digitales**.  
+Desde la gestión administrativa, esto implica un mayor manejo de dinero en efectivo, lo que requiere **controles más estrictos de caja y conciliación**.  
+
+Desde **marketing y ventas**, se observa una oportunidad para **incentivar el uso de medios electrónicos** mediante beneficios o campañas promocionales, lo que podría agilizar los procesos de cobro, mejorar la experiencia del cliente y aumentar las ventas al ofrecer más opciones de pago.  
+
+---
+
+## 2️⃣ Detección de outliers  
+
+En la categoría **Limpieza** del gráfico boxplot se detectó un valor atípico por encima del rango habitual, y otro similar en **Higiene**. Estos valores pueden deberse a productos especiales o errores de carga, por lo que conviene **verificarlos** antes de realizar análisis predictivos o de rentabilidad.  
+
+En el histograma, la diferencia entre **media, mediana y moda** también indica **valores atípicos altos** que influyen en la media general.  
+Estos casos requieren atención, ya que pueden distorsionar la percepción de las ventas promedio y afectar la interpretación de resultados.  
+
+Identificar y tratar los outliers garantiza una **mayor fiabilidad del análisis** y permite establecer umbrales realistas para decisiones de precios, rentabilidad y proyecciones futuras.  
+
+---
+
+## 3️⃣ Análisis de correlaciones entre variables principales  
+
+La matriz de correlación evidencia una **relación positiva moderada (r = 0.60)** entre la cantidad de productos vendidos y el importe total.  
+Esto significa que, en general, al aumentar la cantidad vendida también crece el valor total de la venta, aunque no siempre de manera proporcional, debido a factores como el precio unitario o la categoría del producto.  
+
+Esta correlación sugiere que las estrategias comerciales deberían enfocarse no solo en aumentar el volumen de ventas, sino también en **potenciar los productos de mayor valor o margen**, optimizando así los ingresos sin necesidad de incrementar significativamente la cantidad de unidades vendidas.  
+
+---
+
+## 🧾 Conclusión general  
+
+El análisis realizado permite comprender en profundidad el comportamiento de **ventas, productos y clientes** de la tienda **Aurelion**, así como su distribución geográfica y económica.  
+
+En conjunto, se observa que las ventas se concentran en **montos bajos a medios**, existe **variabilidad de precios significativa entre categorías**, predomina el **uso de medios de pago tradicionales** y se identifica una **fuerte concentración de clientes en zonas clave**.  
+
+Estos hallazgos orientan la toma de decisiones estratégicas en **administración, marketing, finanzas y logística**, fortaleciendo la planificación de inventarios, la segmentación de campañas, la optimización de rutas y la gestión eficiente de recursos.  
+
+✨ En resumen, el análisis confirma que la **base de datos se encuentra limpia, coherente y lista para su uso en etapas posteriores de análisis y modelado**, constituyendo una base sólida para **decisiones informadas y sostenibles** que impulsen la rentabilidad y eficiencia del negocio.  
+
+---
+
+👨‍💻 **Autor**  
 **EQUIPO 1**  
 Proyecto académico desarrollado en colaboración con **IBM SkillsBuild** y **Guayerd**.
+
