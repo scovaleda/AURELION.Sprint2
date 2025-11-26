@@ -1,5 +1,7 @@
 # 🛒 Proyecto Aurelion
 
+#Sprint 1
+
 ## 📌 Tema, problema y solución
 
 **Tema:** Gestión de productos y análisis de ventas de un supermercado.  
@@ -94,6 +96,7 @@ El sistema permite acceder y validar archivos del proyecto, leer el contenido de
 Su estructura modular permite integrarlo fácilmente con análisis posteriores mediante `pandas` para la generación de reportes o dashboards.
 
 ---
+# Sprint 2
 
 ##  Integración de datos y preparación del entorno
 
@@ -253,9 +256,7 @@ Durante esta fase no se detectaron valores atípicos significativos; sin embargo
 
 ---
 
-
-
-# 🧭 MENÚ CONSOLA – PROYECTO AURELION (DEMO 1)
+## 🧭 MENÚ CONSOLA – PROYECTO AURELION (DEMO 1)
 
 Luego de implementar y validar los procesos de limpieza y análisis, se desarrolló una interfaz de menú en consola que permite ejecutar cada módulo del Proyecto Aurelion de forma sencilla y ordenada. Este módulo facilita la interacción del usuario con los procesos de limpieza, análisis y exportación de datos, ofreciendo una manera estructurada, intuitiva y eficiente de acceder a las principales funciones del sistema desde una única interfaz.
 
@@ -330,10 +331,7 @@ El menú utiliza las siguientes funciones auxiliares, definidas en otros módulo
 
 ---
 
-
-
-
-# 📊 ANÁLISIS ESTADÍSTICO Y VISUALIZACIÓN DE RESULTADOS  
+## 📊 ANÁLISIS ESTADÍSTICO Y VISUALIZACIÓN DE RESULTADOS  
 
 En esta etapa del proyecto se realizó el análisis estadístico y la visualización de resultados utilizando los datos ya depurados de las hojas **Clientes**, **Detalle_Ventas**, **Productos** y **Ventas** del archivo **BD_AURELION.xlsx**.  
 El objetivo fue describir las características principales de los datos mediante medidas de tendencia central y representaciones gráficas que faciliten su interpretación y permitan obtener conclusiones orientadas a la toma de decisiones.
@@ -409,6 +407,249 @@ Estos hallazgos orientan la toma de decisiones estratégicas en **administració
 ✨ En resumen, el análisis confirma que la **base de datos se encuentra limpia, coherente y lista para su uso en etapas posteriores de análisis y modelado**, constituyendo una base sólida para **decisiones informadas y sostenibles** que impulsen la rentabilidad y eficiencia del negocio.  
 
 ---
+
+
+# Sprint 3
+
+## Modelos de Regresión, Clasificación y Métricas de Inventario
+
+## 1. Objetivo
+
+ El objetivo es predecir la cantidad de unidades vendidas (demanda) mediante un modelo de regresión, con el propósito de estimar el stock óptimo que deberían tener los productos. A partir de la predicción de la variable cantidad, se busca anticipar rupturas de stock, identificar productos críticos y apoyar la planificación del inventario. Además, se generan clasificaciones derivadas del dataset y visualizaciones operativas para la toma de decisiones.
+
+---
+
+## 2. Dataset y Construcción del Modelo
+
+ El script utiliza un archivo Excel con tres hojas principales:
+
+- Productos
+
+- Detalle_Ventas
+
+- Dataset_Mensual
+
+ Se realiza la unificación de datos mediante merge, agregando variables financieras y de stock al dataset mensual. Luego se eliminan valores nulos y se transforma el campo porcentaje_margen de cadena de texto a número. Esto permite consolidar un dataset limpio y listo para modelado.
+
+---
+
+## 3. Definición del Problema de ML
+
+ ### Tipo de problema: Regresión supervisada.
+
+ ### Objetivo principal: Predecir la cantidad vendida por producto, año y mes.
+
+ Conocer la demanda futura permite calcular el stock óptimo y detectar riesgos de desabastecimiento.
+
+---
+
+## 4. Entradas (X) y Salida (y)
+
+### Variable objetivo (y)
+ - cantidad
+
+### Variables de entrada (X)
+ anio, mes, categoria_general,
+ precio_unitario, costo_producto,
+ margen_ganancia, porcentaje_margen,
+ stock_actual, stock_minimo
+
+Separación por tipo
+
+Numéricas: anio, mes, precio_unitario, costo_producto, margen_ganancia, porcentaje_margen, stock_actual, stock_minimo
+
+Categóricas: categoria_general
+
+---
+
+## 5. Modelo de ML Implementado
+
+### Algoritmo elegido: Gradient Boosting Regressor
+
+### Justificación: 
+
+- Maneja relaciones no lineales entre variables.
+
+- Se ajusta bien a datos heterogéneos como precios, stocks y márgenes.
+
+- Es robusto ante variaciones entre productos.
+
+- Minimiza el sobreajuste mediante parámetros como max_depth, learning_rate y subsample.
+
+- Generalmente supera a los modelos lineales en series con comportamiento irregular, como la demanda de productos.
+
+---
+
+## 6. Preprocesamiento Aplicado
+
+ ### Se utiliza un ColumnTransformer dentro de un Pipeline:
+
+ - StandardScaler() para variables numéricas
+
+ - OneHotEncoder(handle_unknown="ignore") para la categoría
+
+ - El Pipeline garantiza preprocesamiento consistente tanto en entrenamiento como en predicción.
+
+---
+
+## 7. División Train/Test y Entrenamiento
+
+### División 80% entrenamiento / 20% test
+
+ Semilla fija (random_state=42) para mantener reproducibilidad
+
+ Entrenamiento con: modelo_reg.fit(X_train, y_train)
+
+
+ Predicciones con:  y_pred = modelo_reg.predict(X_test)
+
+---
+
+## 8. Métricas de Evaluación
+
+ El modelo imprime en consola las siguientes métricas:
+
+ - MAE: error absoluto promedio (qué tan lejos estamos en unidades reales)
+
+ - RMSE: penaliza más los errores grandes
+
+ - R²: porcentaje de variabilidad explicada por el modelo
+
+ Estas métricas permiten medir estabilidad y capacidad predictiva.
+
+---
+
+## 9. Clasificación (Reglas Basadas en Datos)
+
+ Además del modelo de regresión, se genera una clasificación no supervisada basada en reglas:
+
+ ### Clasificación por demanda (nivel_ventas)
+
+ - TOP: ventas ≥ percentil 80
+
+ - MEDIO: entre percentil 30 y 80
+
+ - BAJO: ventas ≤ percentil 30
+
+ ### Clasificación por riesgo de stock
+
+ Basado en el stock actual versus el mínimo:
+
+ - ALTO_RIESGO
+
+ - MEDIO_RIESGO
+
+ - SIN_RIESGO
+
+ Estas categorías alimentan los gráficos de criticidad creados más adelante.
+
+---
+
+## 10. Predicción Mensual Especial – Diciembre
+
+ Se construye un segundo modelo de regresión para predecir el valor total de ventas mensuales del último período disponible, especialmente diciembre.
+
+### Variables utilizadas:
+
+ mes_num (índice temporal)
+
+ rolling_3 (media móvil 3 meses)
+
+ precio_promedio
+
+ costo_promedio
+
+ El modelo predice automáticamente la cantidad estimada para diciembre y la muestra en consola.
+
+---
+
+## 11. Gráficos Generados
+
+### 11.1 Top 20 Productos con Mayor Demanda Real
+
+- Se agrupan todas las ventas por producto.  
+- Se obtienen los 20 de mayor cantidad vendida.  
+- Se grafica un ranking comparativo.  
+
+El gráfico incluye una anotación automática destacando: ➡️ Producto con mayor demanda real.
+
+---
+
+### 11.2 Predicción de Ventas de Diciembre
+
+A partir del dataset mensual se calcula:
+
+- cantidad_total  
+- precio_promedio  
+- costo_promedio  
+- fecha del mes  
+- número de mes (`mes_num`)  
+- media móvil de 3 meses (`rolling_3`)  
+
+### Modelo utilizado
+
+**GradientBoostingRegressor**, con:
+
+- `n_estimators = 300`  
+- `learning_rate = 0.05`  
+- `max_depth = 4`  
+- `subsample = 0.9`
+
+Genera: ➡️ Predicción de ventas para diciembre del último año disponible.  
+El valor aparece tanto en consola como en el gráfico.
+
+---
+
+### 11.3 Riesgo de Desabastecimiento
+
+Se calcula el ratio:
+
+```
+ratio = stock_actual / stock_minimo
+```
+
+Se seleccionan los productos con ratio ≤ 1.5.  
+Del grupo, se muestran los 20 más críticos.
+
+El gráfico compara:
+
+- Stock mínimo  
+- Stock actual  
+
+Y destaca: ➡️ Producto con menor stock relativo frente al mínimo.
+
+---
+
+### 11.4 Productos TOP Críticos (Alta Demanda + Bajo Stock)
+
+Se cruzan ambas condiciones:
+
+1. Producto clasificado como **TOP**.  
+2. Stock crítico (`stock_actual < stock_minimo × 1.2`).  
+
+Se muestran los 20 más relevantes.
+
+Si existe uno claramente crítico, se agrega una anotación indicando: ➡️ Producto TOP más crítico (demanda total + stock actual).
+
+---
+
+## 12. Conclusión General 
+
+ El modelo integra predicción de demanda, análisis de inventario y clasificación operativa para facilitar decisiones estratégicas relacionadas con:
+
+ * planificación de compras
+
+ * reposición de stock
+
+ * control de inventario
+
+ * prevención de quiebres
+
+ * priorización de productos críticos
+
+ El resultado final permite anticipar variaciones de demanda y ajustar los niveles de inventario para lograr mayor eficiencia y continuidad operativa.
+
+ ---
 
 👨‍💻 **Autor**  
 **EQUIPO 1**  
