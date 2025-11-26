@@ -1,6 +1,6 @@
 # 🛒 Proyecto Aurelion
 
-#Sprint 1
+# Sprint 1
 
 ## 📌 Tema, problema y solución
 
