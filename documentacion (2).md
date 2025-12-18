@@ -870,9 +870,9 @@ VAR _can =
 RETURN
     IF ( ISBLANK ( _can ), 0, _can )
 ```
-```DAX
-### 📁 Carpeta Producto
 
+### 📁 Carpeta Producto
+```DAX
 Ingreso por Producto =
 CALCULATE (
     SUM ( Detalle_Ventas[importe] ),
