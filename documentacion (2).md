@@ -700,7 +700,7 @@ Se creó una tabla calendario dinámica mediante DAX, tomando como referencia el
 
 Esta tabla permite realizar análisis temporales por año, mes, trimestre y día, y fue utilizada para la creación de jerarquías de fechas y cálculos comparativos entre períodos.
 
-
+```DAX
 Calendario =
 VAR FechaMin = MIN ( Ventas[Fecha] )
 VAR FechaMax = MAX ( Ventas[Fecha] )
@@ -715,7 +715,7 @@ ADDCOLUMNS (
     "Día", DAY ( [Date] ),
     "Día Semana", FORMAT ( [Date], "dddd" )
 )
-
+```
 
 ---
 
@@ -809,7 +809,7 @@ Dataset_Mensual → Opcional, sin relación
 Se creó una tabla específica denominada **Medidas**, organizada en carpetas para mejorar la mantenibilidad del modelo.
 
 ### 📁 Carpeta Ventas
-
+```DAX
 Ventas Totales =
 SUM ( Ventas[total_venta] )
 
@@ -845,9 +845,9 @@ CALCULATE (
     Calendario[Año] = 2025,
     Calendario[Mes Nº] = 12
 )
-
+```
 ### 📁 Carpeta Stock
-
+```DAX
 Stock Actual =
 SUM ( Productos[stock_actual] )
 
@@ -869,8 +869,8 @@ VAR _can =
     )
 RETURN
     IF ( ISBLANK ( _can ), 0, _can )
-
-
+```
+```DAX
 ### 📁 Carpeta Producto
 
 Ingreso por Producto =
@@ -927,7 +927,7 @@ VAR TablaTop =
     )
 RETURN
     MAXX ( TablaTop, [Unidades] )
-
+```
 ---
 
 ## 6. Columna calculada en la tabla Productos
@@ -936,13 +936,14 @@ Se creó una columna calculada para clasificar el estado del stock por producto:
 
 Esta columna se utiliza para filtros, segmentadores y análisis visual del riesgo de quiebre de stock.
 
+```DAX
 Estado Stock =
 IF (
     Productos[stock_actual] <= Productos[stock_minimo],
     "CRITICO",
     "OK"
 )
-
+```
 ---
 
 ## KPIs y páginas del dashboard
