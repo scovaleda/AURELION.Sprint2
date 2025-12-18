@@ -649,7 +649,419 @@ Si existe uno claramente crítico, se agrega una anotación indicando: ➡️ Pr
 
  El resultado final permite anticipar variaciones de demanda y ajustar los niveles de inventario para lograr mayor eficiencia y continuidad operativa.
 
+
+
  ---
+
+# Sprint 4 
+
+## Documentación Power BI  
+### Análisis de Desempeño Comercial y Control de Stock
+
+En esta sprint se desarrolló un dashboard integral en Power BI orientado al análisis del desempeño comercial, la identificación de productos con mayor demanda y el control de stock crítico. El trabajo abarcó todo el flujo del proyecto: desde la importación y preparación de datos hasta la construcción de KPIs y visualizaciones con enfoque ejecutivo.
+
+---
+
+## Importación de la base de datos
+
+La base de datos utilizada en este proyecto se denomina **BD_AURELION_ENTRENABLE_FINAL.xlsx**.  
+Contiene información histórica de la tienda Aurelion desde el año 2023 hasta noviembre de 2025, con más de 54.000 registros relacionados con ventas, productos, clientes y stock.
+
+Este archivo fue importado a Power BI como punto de partida del proceso de modelado y análisis.
+
+tablas principales:
+
+- Ventas  
+- Detalle_Ventas  
+- Productos  
+- Clientes  
+- Dataset_Mensual  
+- Mapeo_Categorias  
+
+---
+
+## 2. Limpieza y preparación de datos (Power Query)
+
+En Power Query se realizaron tareas de limpieza y normalización, entre ellas:
+
+- Corrección de tipos de datos (fechas, numéricos y texto).
+- Eliminación de columnas innecesarias para el análisis.
+- Revisión de valores nulos y duplicados.
+- Estandarización de nombres de campos para facilitar el modelado.
+- Validación de claves entre tablas (IDs de producto, fechas, etc.).
+
+Estas acciones permitieron garantizar la calidad de los datos y un correcto funcionamiento del modelo relacional.
+
+---
+
+## 3 Creación de la tabla Calendario
+
+Se creó una tabla calendario dinámica mediante DAX, tomando como referencia el rango de fechas existente en la tabla Ventas. Esto permite que el modelo se actualice automáticamente si se incorporan nuevos datos.
+
+Esta tabla permite realizar análisis temporales por año, mes, trimestre y día, y fue utilizada para la creación de jerarquías de fechas y cálculos comparativos entre períodos.
+
+
+Calendario =
+VAR FechaMin = MIN ( Ventas[Fecha] )
+VAR FechaMax = MAX ( Ventas[Fecha] )
+RETURN
+ADDCOLUMNS (
+    CALENDAR ( FechaMin, FechaMax ),
+    "Año", YEAR ( [Date] ),
+    "Mes", FORMAT ( [Date], "MMMM" ),
+    "Mes Nº", MONTH ( [Date] ),
+    "Año-Mes", FORMAT ( [Date], "YYYY-MM" ),
+    "Trimestre", "T" & FORMAT ( [Date], "Q" ),
+    "Día", DAY ( [Date] ),
+    "Día Semana", FORMAT ( [Date], "dddd" )
+)
+
+
+---
+
+## 4. Creación de relaciones entre tablas (Modelo de datos)
+
+
+El modelo de datos fue diseñado siguiendo un esquema de tipo **estrella**, con el objetivo de optimizar el rendimiento del dashboard y garantizar la correcta interpretación de los indicadores.
+
+### Tabla DIM Productos
+- **Productos[Producto_ID]** (lado 1)  
+- **Detalle_Ventas[Producto_ID]** (lado *)
+
+Esta relación permite calcular métricas clave como ventas por producto, rotación de stock e identificación de productos críticos.
+
+---
+
+### Tabla DETALLE_VENTAS (tabla de hechos)
+
+La tabla **Detalle_Ventas** actúa como la tabla fact principal del modelo, ya que contiene el detalle de cada producto vendido.
+
+Relaciones:
+- **Detalle_Ventas[Producto_ID] → Productos[Producto_ID]**
+- **Detalle_Ventas[Venta_ID] → Ventas[Venta_ID]**
+
+Esta tabla se ubica en el centro del modelo y concentra las métricas de cantidad e importe.
+
+---
+
+### Tabla VENTAS
+
+La tabla **Ventas** representa el encabezado de cada transacción.
+
+Relaciones:
+- **Ventas[Venta_ID]** (1) → **Detalle_Ventas[Venta_ID]** (*)
+- **Ventas[Cliente_ID]** (1) → **Clientes[Cliente_ID]** (*)
+
+Esto permite analizar las ventas tanto a nivel de detalle como por cliente.
+
+---
+
+### Tabla CLIENTES
+
+- **Clientes[Cliente_ID]** (lado 1)  
+- **Ventas[Cliente_ID]** (lado *)
+
+Esta relación permite segmentar las ventas por características del cliente, como zona o tipo de cliente.
+
+---
+
+### Tabla CALENDARIO
+
+La tabla calendario se relaciona con la fecha de la venta:
+
+- **Calendario[Date]** (lado 1)  
+- **Ventas[Fecha]** (lado *)
+
+Gracias a esta relación es posible:
+- Analizar ventas por año, mes, día y trimestre.
+- Detectar picos de venta y estacionalidades.
+- Comparar períodos.
+- Apoyar decisiones sobre stock óptimo según la demanda histórica.
+
+---
+
+### Tablas sin relación directa
+
+- **Mapeo_Categorías**: no se relaciona con el modelo, ya que se utiliza únicamente como tabla auxiliar para la limpieza y normalización de categorías.
+- **Dataset_Mensual**: no se relaciona al modelo principal, dado que es una tabla agregada y solo sería necesaria para análisis comparativos específicos.
+
+Estas tablas se mantienen ocultas para no interferir con el modelo analítico.
+
+---
+### Resumen visual del modelo de datos
+
+DIM Calendario (1)  
+↓  
+VENTAS (1) ─── Clientes (1)  
+↓  
+DETALLE_VENTAS (*)  
+↑  
+DIM Productos (1)  
+
+Mapeo_Categorías → Oculta, sin relación  
+Dataset_Mensual → Opcional, sin relación
+
+---
+
+
+## 5. Creación de la tabla de Medidas
+
+Se creó una tabla específica denominada **Medidas**, organizada en carpetas para mejorar la mantenibilidad del modelo.
+
+### 📁 Carpeta Ventas
+
+Ventas Totales =
+SUM ( Ventas[total_venta] )
+
+Unidades Vendidas =
+SUM ( Detalle_Ventas[cantidad] )
+
+Ventas Dic 2023 =
+CALCULATE (
+    [Ventas Totales],
+    Calendario[Año] = 2023,
+    Calendario[Mes Nº] = 12
+)
+
+Ventas Dic 2024 =
+CALCULATE (
+    [Ventas Totales],
+    Calendario[Año] = 2024,
+    Calendario[Mes Nº] = 12
+)
+
+Variacion % Dic =
+DIVIDE (
+    [Ventas Dic 2024] - [Ventas Dic 2023],
+    [Ventas Dic 2023]
+)
+
+Meta Ventas Dic 2025 =
+[Ventas Dic 2024] * ( 1 + [Variacion % Dic] )
+
+Unidades Vendidas Dic 2025 =
+CALCULATE (
+    [Unidades Vendidas],
+    Calendario[Año] = 2025,
+    Calendario[Mes Nº] = 12
+)
+
+### 📁 Carpeta Stock
+
+Stock Actual =
+SUM ( Productos[stock_actual] )
+
+Stock Minimo =
+SUM ( Productos[stock_minimo] )
+
+Stock Critico? =
+IF (
+    [Stock Actual] <= [Stock Minimo],
+    "CRITICO",
+    "OK"
+)
+
+Cantidad Productos Críticos =
+VAR _can =
+    CALCULATE (
+        COUNTROWS ( Productos ),
+        Productos[stock_actual] <= Productos[stock_minimo]
+    )
+RETURN
+    IF ( ISBLANK ( _can ), 0, _can )
+
+
+### 📁 Carpeta Producto
+
+Ingreso por Producto =
+CALCULATE (
+    SUM ( Detalle_Ventas[importe] ),
+    ALLEXCEPT ( Productos, Productos[nombre_producto] )
+)
+
+Producto Top 1 =
+VAR TablaTop =
+    TOPN (
+        1,
+        SUMMARIZE (
+            Productos,
+            Productos[nombre_producto],
+            "Unidades", [Unidades Vendidas]
+        ),
+        [Unidades],
+        DESC
+    )
+RETURN
+    MAXX ( TablaTop, Productos[nombre_producto] )
+
+Producto Top Demanda =
+VAR TopProd =
+    TOPN (
+        1,
+        ALL ( Productos[nombre_producto] ),
+        [Unidades Vendidas Dic 2025],
+        DESC
+    )
+RETURN
+    CONCATENATEX ( TopProd, Productos[nombre_producto], ", " )
+
+Ranking Demanda Producto =
+RANKX (
+    ALL ( Productos[nombre_producto] ),
+    [Unidades Vendidas Dic 2025],
+    ,
+    DESC
+)
+
+Unidades Producto Top 1 =
+VAR TablaTop =
+    TOPN (
+        1,
+        SUMMARIZE (
+            Productos,
+            Productos[nombre_producto],
+            "Unidades", [Unidades Vendidas]
+        ),
+        [Unidades],
+        DESC
+    )
+RETURN
+    MAXX ( TablaTop, [Unidades] )
+
+---
+
+## 6. Columna calculada en la tabla Productos
+
+Se creó una columna calculada para clasificar el estado del stock por producto:
+
+Esta columna se utiliza para filtros, segmentadores y análisis visual del riesgo de quiebre de stock.
+
+Estado Stock =
+IF (
+    Productos[stock_actual] <= Productos[stock_minimo],
+    "CRITICO",
+    "OK"
+)
+
+---
+
+## KPIs y páginas del dashboard
+
+El **Dashboard del Sprint 4** fue desarrollado para analizar el desempeño comercial y el riesgo de inventario de la tienda **Aurelion**, con foco en los años **2023 y 2024**, incorporando además una proyección para diciembre de 2025.
+
+El punto de partida fue un reto significativo: la empresa contaba con una base de datos extensa, con más de **54.000 registros** correspondientes al período 2023–noviembre 2025. Sin embargo, esta información presentaba diversos problemas que limitaban la toma de decisiones estratégicas.
+
+Entre las principales dificultades se identificaron:
+- Duplicidad de registros.
+- Dificultad para actualizar la información.
+- Falta de control claro sobre ventas y niveles de stock.
+
+Estas limitaciones impedían realizar análisis temporales confiables, como comparaciones mes a mes o el estudio de períodos clave del negocio, por ejemplo la **temporada navideña**.
+
+Como consecuencia, resultaba complejo identificar:
+- Productos con mayor rotación.
+- Productos con riesgo de desabastecimiento.
+- Productos con baja salida y sobrestock.
+
+En este contexto, no existía una base sólida para optimizar el inventario ni para diseñar estrategias comerciales efectivas.
+
+---
+
+### Preguntas clave de negocio
+
+A partir de esta situación, el dashboard fue diseñado para responder las siguientes preguntas:
+
+1. ¿Cómo se comportaron las ventas en diciembre de 2023 versus diciembre de 2024?
+2. ¿Se observa un crecimiento sostenido en las ventas?
+3. ¿Qué productos presentan mayor demanda en cada período?
+4. ¿Cuántos productos se encuentran en stock crítico, por debajo del nivel mínimo?
+5. En términos generales, ¿cuál es el estado del inventario de la tienda?
+
+Cada página del dashboard responde a una de estas preguntas mediante KPIs específicos y visualizaciones orientadas a la toma de decisiones.
+
+---
+
+### Overview – Desempeño Comercial y Stock
+
+La página **Overview** presenta una visión general del negocio, integrando indicadores clave de ventas y stock. Su objetivo es brindar una lectura rápida del estado de la tienda, destacando:
+
+- Ventas totales.
+- Variación porcentual interanual.
+- Cantidad de productos en stock crítico.
+- Ranking de productos más vendidos.
+
+Esta vista funciona como punto de partida para el análisis detallado de los KPIs.
+
+---
+
+### KPI 1 – Comparación de Ventas (Diciembre)
+
+Este KPI analiza la comparación interanual de las ventas de diciembre 2023 y diciembre 2024, permitiendo evaluar el crecimiento del negocio. Incluye:
+
+- Ventas de diciembre 2023.
+- Ventas de diciembre 2024.
+- Variación porcentual.
+- Proyección de ventas para diciembre 2025.
+
+La información obtenida sirve como base para establecer objetivos futuros y evaluar el desempeño comercial.
+
+---
+
+### KPI 2 – Producto con Mayor Demanda
+
+Este KPI identifica el producto con mayor nivel de demanda, considerando:
+
+- Producto más vendido.
+- Cantidad de unidades vendidas.
+- Ranking de productos por unidades.
+- Detalle de ingresos por producto.
+
+Este análisis aporta información clave para decisiones comerciales y de reposición de stock.
+
+---
+
+### KPI 3 – Control de Stock Crítico
+
+El KPI de stock crítico permite detectar productos con riesgo de quiebre, facilitando acciones preventivas. Se analizan:
+
+- Cantidad de productos en estado crítico.
+- Comparación entre stock actual y stock mínimo.
+- Estado del stock por producto.
+
+Esta página es fundamental para la gestión eficiente del inventario.
+
+---
+
+## Conclusiones
+
+El desarrollo de esta sprint permitió construir un dashboard robusto y alineado a criterios de negocio, integrando de manera efectiva el análisis comercial y el control de inventario. La correcta modelación de los datos, el uso de medidas DAX y la aplicación de una narrativa visual clara facilitan la interpretación de la información y respaldan la toma de decisiones basadas en datos.
+
+El dashboard permite visualizar y comprender el comportamiento general de la tienda, facilitando el seguimiento del desempeño comercial y la detección temprana de situaciones críticas.
+
+En particular, las ventas de diciembre de 2024 presentan un crecimiento aproximado del **37%** respecto a diciembre de 2023, equivalente a unos **$12.000.000**, lo que habilita la proyección de ventas para diciembre de 2025 iguales o superiores a **$57.000.000**, consolidando una tendencia de crecimiento sostenido.
+
+En relación con el inventario, el análisis evidencia que la mayoría de los productos se encuentra en niveles óptimos de stock. No obstante, se identifica **un producto en estado crítico**, lo que permite anticipar acciones de reposición y prevenir quiebres de stock.
+
+En conjunto, este dashboard aporta valor real al negocio, ya que permite identificar oportunidades de crecimiento, optimizar la gestión del stock y mejorar la planificación comercial de manera preventiva y estratégica.
+
+
+
+
+
+---
+
+
+
+
+📌 Nota sobre las bases de datos utilizadas:
+
+- **BD_AURELION.xlsx**: base original consolidada a partir de los archivos fuente.
+- **BD_AURELION_LIMPIO.xlsx**: versión depurada y normalizada utilizada para análisis exploratorio y modelado.
+- **BD_AURELION_ENTRENABLE_FINAL.xlsx**: versión final utilizada en Power BI para la construcción del modelo y el dashboard.
+
+
+
+
 
 👨‍💻 **Autor**  
 **EQUIPO 1**  
